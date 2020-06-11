@@ -120,8 +120,10 @@ if(SPDLOG_TIDY)
     message(STATUS "Enabled clang-tidy")
 endif()
 
-find_package(Threads REQUIRED)
-message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+if(NOT EMSCRIPTEN)
+    find_package(Threads REQUIRED)
+    message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+endif()
 # ---------------------------------------------------------------------------------------
 # Static/Shared library (shared not supported in windows yet)
 # ---------------------------------------------------------------------------------------
@@ -154,7 +156,11 @@ add_library(spdlog::spdlog ALIAS spdlog)
 target_compile_definitions(spdlog PUBLIC SPDLOG_COMPILED_LIB)
 target_include_directories(spdlog PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
                                          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
-target_link_libraries(spdlog PUBLIC Threads::Threads)
+if(NOT EMSCRIPTEN)
+    target_link_libraries(spdlog PUBLIC Threads::Threads)
+else()
+    target_link_libraries(spdlog PUBLIC "-s USE_PTHREADS=1")
+endif()
 spdlog_enable_warnings(spdlog)
 
 set_target_properties(spdlog PROPERTIES VERSION ${SPDLOG_VERSION} SOVERSION ${SPDLOG_VERSION_MAJOR})
